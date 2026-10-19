@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://satellite-general-rocks-opposition.trycloudflare.com";
+window.__GTA5_URL = "https://tile-recorders-major-backup.trycloudflare.com";
