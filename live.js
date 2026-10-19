@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://settle-arise-dynamic-locally.trycloudflare.com";
+window.__GTA5_URL = "https://florida-jail-advocate-recipient.trycloudflare.com";
