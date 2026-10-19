@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://autumn-boost-disclaimers-neighbor.trycloudflare.com";
+window.__GTA5_URL = "https://satellite-general-rocks-opposition.trycloudflare.com";
