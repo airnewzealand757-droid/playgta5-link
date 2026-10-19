@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://hart-temple-constructed-stanford.trycloudflare.com";
+window.__GTA5_URL = "https://mentor-contest-emissions-seminars.trycloudflare.com";
