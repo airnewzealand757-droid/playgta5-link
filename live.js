@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://designer-cnet-films-sufficient.trycloudflare.com";
+window.__GTA5_URL = "https://photo-contractor-karaoke-hardware.trycloudflare.com";
