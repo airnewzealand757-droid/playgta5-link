@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://concentration-liked-nursing-excessive.trycloudflare.com";
+window.__GTA5_URL = "https://rice-aged-cleanup-marc.trycloudflare.com";
