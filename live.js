@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://drag-willing-cole-page.trycloudflare.com";
+window.__GTA5_URL = "https://montana-possibly-gui-jar.trycloudflare.com";
