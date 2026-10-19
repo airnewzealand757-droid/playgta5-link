@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://identifies-outdoor-feature-harder.trycloudflare.com";
+window.__GTA5_URL = "https://drag-willing-cole-page.trycloudflare.com";
