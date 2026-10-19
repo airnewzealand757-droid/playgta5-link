@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>about:blank</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #0e0e12; }
+  body { display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; color: #fff; padding: 24px; box-sizing: border-box; }
+  .card { text-align: center; max-width: 640px; width: 100%; background: #17171d; border: 1px solid #2a2a33; border-radius: 16px; padding: 32px 28px; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p { font-size: 14px; color: #b9b9c4; margin: 0 0 16px; line-height: 1.6; }
+  code { background: #000; padding: 2px 8px; border-radius: 6px; font-size: 13px; color: #7df9a2; word-break: break-all; }
+  .btn { display: block; width: 100%; padding: 16px 20px; font-size: 17px; border: 0; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: 700; background: #fff; color: #111; }
+  .btn:hover { background: #ddd; }
+  input[type=password] { width: 100%; box-sizing: border-box; padding: 15px 16px; font-size: 16px; border: 1px solid #3a3a45; border-radius: 10px; background: #0b0b0e; color: #fff; outline: none; margin-top: 10px; letter-spacing: 2px; }
+  input[type=password]:focus { border-color: #7df9a2; }
+  #status { margin-top: 16px; font-size: 13px; line-height: 1.6; color: #ffd97d; background: #000; border-radius: 10px; padding: 12px; text-align: left; white-space: pre-wrap; word-break: break-word; }
+  #status.ok { color: #7df9a2; }
+  #note { margin-top: 14px; font-size: 12px; color: #888; line-height: 1.6; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card" id="gate">
+  <h1>Protected launcher</h1>
+  <p>Enter the password to access this site.</p>
+  <input type="password" id="pw" placeholder="Password" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button class="btn" id="unlockBtn">Unlock</button>
+  <div id="gateMsg" style="margin-top:14px;font-size:13px;color:#ff8a8a;min-height:18px"></div>
+</div>
+
+<div class="card hidden" id="ui">
+  <h1>about:blank launcher</h1>
+  <p>The game opens in a blank tab &mdash; empty address bar, nothing in history.<br>Game URL: <code id="url">…</code></p>
+  <button class="btn" id="blankBtn">Open game as about:blank</button>
+  <div id="status">ready</div>
+  <div id="note">Allow popups for this site if nothing opens.<br>The blank tab first shows a loading bar (engine &asymp; 63 MB), then the game &mdash; give it time.<br>This page link never changes: bookmark it and share it once.</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // Password gate: only a hash is in the source, never the password itself.
+  var HASH = '93827892';
+  function hash(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(16);
+  }
+  var gate = document.getElementById('gate');
+  var ui = document.getElementById('ui');
+  var pw = document.getElementById('pw');
+  var gateMsg = document.getElementById('gateMsg');
+  var unlocked = false;
+  try { unlocked = sessionStorage.getItem('gta5-unlocked') === '1'; } catch (e) {}
+
+  var statusEl = document.getElementById('status');
+  function log(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className = cls || '';
+  }
+  // live.js is updated by the host whenever the game server moves.
+  // Loaded as a <script> with a cache-buster: always fresh, no CORS needed.
+  function fetchLiveUrl() {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'live.js?cb=' + Date.now();
+      s.onload = function () {
+        var u = window.__GTA5_URL;
+        if (u && /^https:\/\//.test(u)) resolve(u.replace(/\/+$/, '') + '/');
+        else reject(new Error('no game URL published yet'));
+      };
+      s.onerror = function () { reject(new Error('could not load live.js')); };
+      document.head.appendChild(s);
+    });
+  }
+  function launchWith(GAME_URL) {
+    log('Opening about:blank tab…');
+    var w = null;
+    try { w = window.open('about:blank', '_blank'); } catch (e) {}
+    if (!w) { log('Popup blocked. Allow popups for this site, then press the button again.'); return; }
+    try {
+      var esc = GAME_URL.replace(/"/g, '&quot;');
+      w.document.open();
+      w.document.write(
+        '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>about:blank</title>' +
+        '<link rel="icon" href="data:,">' +
+        '<style>html,body{margin:0;height:100%;background:#000;color:#fff;font:14px system-ui,sans-serif}iframe{border:0;width:100vw;height:100vh;display:block;background:#000}</style>' +
+        '</head><body>' +
+        '<iframe src="' + esc + '" allow="autoplay; fullscreen; pointer-lock; cross-origin-isolated; display-capture" allowfullscreen></iframe>' +
+        '</body></html>'
+      );
+      try { w.document.close(); } catch (e) {}
+      try { w.focus(); } catch (e) {}
+      log('about:blank tab opened. The game loads inside it: black screen with a loading bar first, then the game.\nIf the tab stays white: allow popups for this site and press the button again.', 'ok');
+    } catch (e) {
+      log('Could not write into the blank tab: ' + e + ' — allow popups and press the button again.');
+    }
+  }
+  function launchBlank() {
+    log('Contacting the game server…');
+    fetchLiveUrl().then(function (u) {
+      document.getElementById('url').textContent = u;
+      launchWith(u);
+    }).catch(function (e) {
+      log('Could not reach the link service: ' + e.message + '.\nPress the button again in about 10 seconds.');
+    });
+  }
+
+  var inited = false;
+  function initLauncher() {
+    if (inited) return;
+    inited = true;
+    document.getElementById('blankBtn').addEventListener('click', launchBlank);
+  }
+
+  function showUi() {
+    gate.classList.add('hidden');
+    ui.classList.remove('hidden');
+    initLauncher();
+  }
+
+  function unlock() {
+    var v = pw.value.trim();
+    if (hash(v) === HASH) {
+      unlocked = true;
+      try { sessionStorage.setItem('gta5-unlocked', '1'); } catch (e) {}
+      gateMsg.textContent = '';
+      showUi();
+      try { if (new URLSearchParams(location.search).get('go') === '1') launchBlank(); } catch (e) {}
+    } else {
+      gateMsg.textContent = 'Wrong password - try again.';
+      pw.value = '';
+      pw.focus();
+    }
+  }
+
+  document.getElementById('unlockBtn').addEventListener('click', unlock);
+  pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') unlock(); });
+
+  if (unlocked) {
+    showUi();
+    try { if (new URLSearchParams(location.search).get('go') === '1') launchBlank(); } catch (e) {}
+  } else {
+    pw.focus();
+  }
+})();
+</script>
+</body>
+</html>
+
