@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://jan-autumn-request-loops.trycloudflare.com";
+window.__GTA5_URL = "https://wilderness-youth-brandon-gallery.trycloudflare.com";
