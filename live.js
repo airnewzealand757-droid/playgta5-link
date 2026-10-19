@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://later-examined-theaters-budgets.trycloudflare.com";
+window.__GTA5_URL = "https://und-launched-inspector-attend.trycloudflare.com";
