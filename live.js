@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://covers-chronicle-prep-desired.trycloudflare.com";
+window.__GTA5_URL = "https://chef-marc-tub-islamic.trycloudflare.com";
