@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://chef-marc-tub-islamic.trycloudflare.com";
+window.__GTA5_URL = "https://settle-arise-dynamic-locally.trycloudflare.com";
