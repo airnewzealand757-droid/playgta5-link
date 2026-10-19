@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://accommodate-cookbook-portal-lounge.trycloudflare.com";
+window.__GTA5_URL = "https://api.trycloudflare.com";
