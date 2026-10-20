@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://proceedings-shopper-hydrocodone-experts.trycloudflare.com";
+window.__GTA5_URL = "https://api.trycloudflare.com";
