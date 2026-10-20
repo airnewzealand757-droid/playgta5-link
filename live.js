@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://order-shot-capability-banner.trycloudflare.com";
+window.__GTA5_URL = "https://packages-compliant-permits-replica.trycloudflare.com";
