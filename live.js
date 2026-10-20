@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://api.trycloudflare.com";
+window.__GTA5_URL = "https://bumper-total-success-happened.trycloudflare.com";
