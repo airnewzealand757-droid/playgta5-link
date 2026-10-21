@@ -139,6 +139,10 @@
     if (inited) return;
     inited = true;
     document.getElementById('blankBtn').addEventListener('click', launchBlank);
+    // Read live.js right away so the click can open the launcher directly
+    // (opening a popup after an await would lose the user gesture and the
+    // browser would block it).
+    refreshLiveUrl().catch(function () { /* retried on click */ });
   }
 
   function showUi() {
