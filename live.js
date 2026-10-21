@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://suits-view-sur-taught.trycloudflare.com";
+window.__GTA5_URL = "https://restructuring-mean-documentary-compatible.trycloudflare.com";
