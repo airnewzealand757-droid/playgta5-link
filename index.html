@@ -34,8 +34,8 @@
 
 <div class="card hidden" id="ui">
   <h1>GTA V launcher</h1>
-  <p>The game opens in its own top-level tab &mdash; required: the engine only starts on a cross-origin isolated page, which cannot happen inside an iframe.<br>Game URL: <code id="url">…</code></p>
-  <button class="btn" id="blankBtn">Open the game</button>
+  <p>Step 1 &mdash; press the button below to open the <b>launcher tab</b> (it carries the cross-origin-isolation headers the engine requires).<br>Step 2 &mdash; in that tab press <b>Launch Game</b>: the game opens in a second tab whose address bar stays on <code>about:blank</code>.<br>Launcher URL: <code id="url">…</code></p>
+  <button class="btn" id="blankBtn">Open the launcher tab</button>
   <div id="status">ready</div>
   <div id="note">Allow popups for this site if nothing opens.<br>A loading bar shows first (engine &asymp; 63 MB), then the game &mdash; give it time and keep that tab focused.<br>This page link never changes: bookmark it and share it once.</div>
 </div>
@@ -55,7 +55,12 @@
   var pw = document.getElementById('pw');
   var gateMsg = document.getElementById('gateMsg');
   var unlocked = false;
+  // The unlock token (the password's hash). It is passed on to the tunnel
+  // launcher in the URL fragment so the password is only asked once. The
+  // fragment is never sent to the server and is stripped by the launcher.
+  var unlockToken = '';
   try { unlocked = sessionStorage.getItem('gta5-unlocked') === '1'; } catch (e) {}
+  try { unlockToken = sessionStorage.getItem('gta5-token') || ''; } catch (e) {}
 
   var statusEl = document.getElementById('status');
   function log(msg, cls) {
@@ -77,28 +82,55 @@
       document.head.appendChild(s);
     });
   }
-  function launchWith(GAME_URL) {
-    log('Opening the game tab...');
+  // The tunnel hostname rotates whenever the host restarts, so the URL is fetched
+  // up front and refreshed in the background. The click handler must never await a
+  // network request: the popup has to be opened inside the user gesture or the
+  // browser blocks it.
+  var liveUrl = null;
+  function refreshLiveUrl() {
+    return fetchLiveUrl().then(function (u) {
+      liveUrl = u;
+      document.getElementById('url').textContent = u;
+      return u;
+    });
+  }
+  // The game itself must run inside a cross-origin-isolated document. GitHub Pages
+  // cannot send COOP/COEP headers, so this page is never isolated and must never
+  // host the game. Its only job is to open the tunnel launcher, which *is*
+  // isolated (COOP: same-origin + COEP: require-corp) and can create the cloaked
+  // about:blank shell that embeds the game iframe.
+  function launcherUrlFor(u) {
+    // u is the tunnel origin; the launcher lives at <origin>/launch.html.
+    var url = u.replace(/\/+$/, '') + '/launch.html';
+    // Hand the unlock over to the launcher so the password is not asked twice.
+    // It travels in the URL fragment (never sent to the server, never logged by
+    // the tunnel) and the launcher strips it again as soon as it has read it.
+    if (unlockToken) url += '#k=' + encodeURIComponent(unlockToken);
+    return url;
+  }
+  function launchWith(u) {
     var w = null;
     // Top-level navigation, NOT an iframe: the engine requires cross-origin isolation,
     // and an iframe is only isolated when every ancestor page is too - this GitHub
     // Pages site never is (static pages cannot send COOP/COEP headers).
-    try { w = window.open('about:blank', '_blank'); } catch (e) {}
+    try { w = window.open(launcherUrlFor(u), '_blank'); } catch (e) {}
     if (!w) { log('Popup blocked. Allow popups for this site, then press the button again.'); return; }
-    try { w.location.replace(GAME_URL); } catch (e) {
-      log('Could not navigate the new tab: ' + e + ' - allow popups and press the button again.');
-      return;
-    }
     try { w.focus(); } catch (e) {}
-    log('Game tab opened: a loading bar shows first, then the game.\nIf the tab stayed blank: allow popups for this site and press the button again.', 'ok');
+    log('Launcher tab opened.\nIn that tab press "Launch Game" - the game opens in a second tab whose address bar stays on about:blank.', 'ok');
   }
   function launchBlank() {
-    log('Contacting the game server…');
-    fetchLiveUrl().then(function (u) {
-      document.getElementById('url').textContent = u;
-      launchWith(u);
+    log('Opening the launcher tab…');
+    if (liveUrl) { launchWith(liveUrl); return; }
+    // The URL is not known yet: open the popup NOW (inside the gesture) and point
+    // it at the launcher as soon as live.js has been read.
+    var w = null;
+    try { w = window.open('about:blank', '_blank'); } catch (e) {}
+    if (!w) { log('Popup blocked. Allow popups for this site, then press the button again.'); return; }
+    refreshLiveUrl().then(function (u) {
+      try { w.location.replace(launcherUrlFor(u)); } catch (e) { w.location.href = launcherUrlFor(u); }
     }).catch(function (e) {
       log('Could not reach the link service: ' + e.message + '.\nPress the button again in about 10 seconds.');
+      try { w.close(); } catch (e) {}
     });
   }
 
@@ -119,7 +151,9 @@
     var v = pw.value.trim();
     if (hash(v) === HASH) {
       unlocked = true;
+      unlockToken = HASH;
       try { sessionStorage.setItem('gta5-unlocked', '1'); } catch (e) {}
+      try { sessionStorage.setItem('gta5-token', HASH); } catch (e) {}
       gateMsg.textContent = '';
       showUi();
       try { if (new URLSearchParams(location.search).get('go') === '1') launchBlank(); } catch (e) {}
