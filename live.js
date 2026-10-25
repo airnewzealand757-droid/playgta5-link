@@ -1,1 +1,1 @@
-window.__GTA5_URL = "https://meditation-past-establish-excluded.trycloudflare.com";
+window.__GTA5_URL = "https://neighbors-empty-transport-navigator.trycloudflare.com";
